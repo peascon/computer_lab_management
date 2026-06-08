@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Edit Laboratory
+{% endblock %}
+
+{% block content %}
+
+<div class="card shadow p-4">
+
+    <h2>Edit Laboratory</h2>
+
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+        <div class="mb-3">
+            <label>Lab Name</label>
+            <input
+                type="text"
+                name="lab_name"
+                value="{{ lab.lab_name }}"
+                class="form-control"
+                required>
+        </div>
+
+        <div class="mb-3">
+            <label>Location</label>
+            <input
+                type="text"
+                name="location"
+                value="{{ lab.location }}"
+                class="form-control"
+                required>
+        </div>
+
+        <div class="mb-3">
+            <label>Capacity</label>
+            <input
+                type="number"
+                name="capacity"
+                value="{{ lab.capacity }}"
+                class="form-control"
+                required>
+        </div>
+
+        <button type="submit" class="btn btn-success">
+            Update Laboratory
+        </button>
+
+    </form>
+
+</div>
+
+{% endblock %}

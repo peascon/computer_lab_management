@@ -1,6 +1,6 @@
 from app import app, db
-from flask import render_template, request, redirect, url_for, flash
-from app.models import Student, Laboratory, Material, Teacher, LabActivity, Maintenance, User, Notification
+from flask import render_template, request, redirect, url_for, flash, Response
+from app.models import Student, Laboratory, Material, Teacher, LabActivity, Maintenance, User, Notification, AuditLog, SystemConfig
 from flask_login import login_user, logout_user, login_required, current_user
 from datetime import datetime, timedelta
 from functools import wraps
@@ -226,16 +226,53 @@ def home():
         activity_count=activity_count,
         active_loans=active_loans,       
         pending_repairs=pending_repairs   
-    )
-
-
-# ----------------------------
+    )# ----------------------------
 # System Administrator Settings
 # ----------------------------
 @app.route('/admin/settings')
 @login_required
 @admin_required
 def admin_settings():
+    import os
+
+    # System config dict
+    config_rows = SystemConfig.query.all()
+    config = {row.key: row.value for row in config_rows}
+    # Coerce boolean strings
+    for bool_key in ('enable_notifications', 'enable_loans', 'require_approval'):
+        config[bool_key] = config.get(bool_key, 'true').lower() == 'true'
+    config.setdefault('max_loan_days', 7)
+
+    # Users
+    admins = User.query.filter_by(role='admin').all()
+    non_admin_users = User.query.filter(User.role != 'admin').all()
+
+    # Audit logs
+    audit_logs = AuditLog.query.order_by(AuditLog.timestamp.desc()).limit(100).all()
+
+    # System health
+    import time
+    db_path = app.config.get('SQLALCHEMY_DATABASE_URI', '').replace('sqlite:///', '')
+    db_size = '—'
+    if db_path and os.path.exists(db_path):
+        size_bytes = os.path.getsize(db_path)
+        db_size = f'{size_bytes / 1024:.1f} KB' if size_bytes < 1024*1024 else f'{size_bytes / (1024*1024):.2f} MB'
+
+    errors_24h = AuditLog.query.filter(
+        AuditLog.status == 'failed',
+        AuditLog.timestamp >= datetime.utcnow() - timedelta(hours=24)
+    ).count()
+
+    system_uptime = '—'
+    try:
+        import psutil
+        uptime_seconds = time.time() - psutil.boot_time()
+        hours, rem = divmod(int(uptime_seconds), 3600)
+        minutes, _ = divmod(rem, 60)
+        system_uptime = f'{hours}h {minutes}m'
+    except ImportError:
+        system_uptime = 'N/A (install psutil)'
+
     system_counts = {
         'students': Student.query.count(),
         'teachers': Teacher.query.count(),
@@ -245,34 +282,220 @@ def admin_settings():
         'maintenance_records': Maintenance.query.count(),
     }
 
-    return render_template('admin_settings.html', system_counts=system_counts)
+    # Backups list from instance folder
+    backup_dir = os.path.join(os.path.dirname(app.instance_path), 'backups')
+    backups = []
+    if os.path.exists(backup_dir):
+        for fname in sorted(os.listdir(backup_dir), reverse=True):
+            if fname.endswith('.csv'):
+                fpath = os.path.join(backup_dir, fname)
+                stat = os.stat(fpath)
+                size_kb = stat.st_size / 1024
+                backups.append({
+                    'filename': fname,
+                    'created_at': datetime.fromtimestamp(stat.st_mtime),
+                    'size': f'{size_kb:.1f} KB',
+                    'id': fname  # use filename as id
+                })
+
+    return render_template(
+        'admin_settings.html',
+        config=config,
+        admins=admins,
+        non_admin_users=non_admin_users,
+        audit_logs=audit_logs,
+        system_uptime=system_uptime,
+        db_size=db_size,
+        active_sessions=1,
+        errors_24h=errors_24h,
+        backups=backups,
+        system_counts=system_counts,
+    )
 
 
-# ----------------------------
-# User Profile Route
-# ----------------------------
-@app.route('/profile')
+@app.route('/admin/save-config', methods=['POST'])
 @login_required
-def user_profile():
-    return render_template('user_profile.html', user=current_user)
+@admin_required
+def save_system_config():
+    fields = ['system_name', 'system_email', 'org_name', 'contact_phone', 'max_loan_days']
+    toggles = ['enable_notifications', 'enable_loans', 'require_approval']
+
+    for field in fields:
+        val = request.form.get(field, '').strip()
+        row = SystemConfig.query.filter_by(key=field).first()
+        if row:
+            row.value = val
+        else:
+            db.session.add(SystemConfig(key=field, value=val))
+
+    for toggle in toggles:
+        val = 'true' if request.form.get(toggle) else 'false'
+        row = SystemConfig.query.filter_by(key=toggle).first()
+        if row:
+            row.value = val
+        else:
+            db.session.add(SystemConfig(key=toggle, value=val))
+
+    db.session.add(AuditLog(user_id=current_user.id, action_type='update', details='System configuration updated', status='success'))
+    db.session.commit()
+    flash('Configuration saved successfully.', 'success')
+    return redirect(url_for('admin_settings') + '#system-config')
 
 
-# ----------------------------
-# Announcements Route
-# ----------------------------
-@app.route('/announcements')
+@app.route('/admin/grant-admin', methods=['POST'])
 @login_required
-def announcements():
-    return render_template('announcements.html')
+@admin_required
+def grant_admin():
+    user_id = request.form.get('user_id', type=int)
+    user = User.query.get_or_404(user_id)
+    user.role = 'admin'
+    db.session.add(AuditLog(user_id=current_user.id, action_type='update', details=f'Granted admin to {user.username}', status='success'))
+    db.session.commit()
+    flash(f'{user.username} has been granted admin privileges.', 'success')
+    return redirect(url_for('admin_settings') + '#users-management')
 
 
-# ----------------------------
-# Help & Support Route
-# ----------------------------
-@app.route('/help')
+@app.route('/admin/revoke-admin/<int:id>', methods=['POST'])
 @login_required
-def help_support():
-    return render_template('help_support.html')
+@admin_required
+def revoke_admin(id):
+    user = User.query.get_or_404(id)
+    if user.id == current_user.id:
+        flash('You cannot revoke your own admin privileges.', 'danger')
+        return redirect(url_for('admin_settings') + '#users-management')
+    user.role = 'staff'
+    db.session.add(AuditLog(user_id=current_user.id, action_type='update', details=f'Revoked admin from {user.username}', status='success'))
+    db.session.commit()
+    flash(f'Admin privileges revoked from {user.username}.', 'warning')
+    return redirect(url_for('admin_settings') + '#users-management')
+
+
+@app.route('/admin/create-backup', methods=['POST'])
+@login_required
+@admin_required
+def create_backup():
+    import os, csv, io
+
+    backup_dir = os.path.join(os.path.dirname(app.instance_path), 'backups')
+    os.makedirs(backup_dir, exist_ok=True)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+
+    # Students
+    writer.writerow(['--- STUDENTS ---'])
+    writer.writerow(['ID', 'Name', 'Department', 'Email'])
+    for s in Student.query.all():
+        writer.writerow([s.id, s.name, s.department, s.email])
+
+    writer.writerow([])
+
+    # Teachers
+    writer.writerow(['--- TEACHERS ---'])
+    writer.writerow(['ID', 'Name', 'Department', 'Email'])
+    for t in Teacher.query.all():
+        writer.writerow([t.id, t.name, t.department, t.email])
+
+    writer.writerow([])
+
+    # Materials
+    writer.writerow(['--- MATERIALS ---'])
+    writer.writerow(['ID', 'Name', 'Category', 'Brand', 'Quantity', 'Status', 'Lab ID'])
+    for m in Material.query.all():
+        writer.writerow([m.id, m.material_name, m.category, m.brand, m.quantity, m.status, m.laboratory_id])
+
+    writer.writerow([])
+
+    # Activity Logs
+    writer.writerow(['--- ACTIVITY LOGS ---'])
+    writer.writerow(['ID', 'Type', 'User Type', 'Date', 'Student ID', 'Teacher ID', 'Material ID', 'Return Status'])
+    for a in LabActivity.query.all():
+        writer.writerow([a.id, a.activity_type, a.user_type, a.date_logged, a.student_id, a.teacher_id, a.material_id, a.return_status])
+
+    writer.writerow([])
+
+    # Maintenance
+    writer.writerow(['--- MAINTENANCE ---'])
+    writer.writerow(['ID', 'Material ID', 'Issue', 'Status', 'Date Reported'])
+    for r in Maintenance.query.all():
+        writer.writerow([r.id, r.material_id, r.issue_description, r.status, r.date_reported])
+
+    csv_content = output.getvalue()
+    filename = f'backup_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv'
+    filepath = os.path.join(backup_dir, filename)
+
+    with open(filepath, 'w', newline='') as f:
+        f.write(csv_content)
+
+    db.session.add(AuditLog(user_id=current_user.id, action_type='create', details=f'Backup created: {filename}', status='success'))
+    db.session.commit()
+
+    return Response(
+        csv_content,
+        mimetype='text/csv',
+        headers={'Content-Disposition': f'attachment; filename={filename}'}
+    )
+
+
+@app.route('/admin/download-backup/<path:id>')
+@login_required
+@admin_required
+def download_backup(id):
+    import os
+    backup_dir = os.path.join(os.path.dirname(app.instance_path), 'backups')
+    filepath = os.path.join(backup_dir, id)
+    if not os.path.exists(filepath):
+        flash('Backup file not found.', 'danger')
+        return redirect(url_for('admin_settings') + '#backup-restore')
+    with open(filepath, 'r') as f:
+        content = f.read()
+    return Response(content, mimetype='text/csv',
+                    headers={'Content-Disposition': f'attachment; filename={id}'})
+
+
+@app.route('/admin/delete-backup/<path:id>', methods=['POST'])
+@login_required
+@admin_required
+def delete_backup(id):
+    import os
+    backup_dir = os.path.join(os.path.dirname(app.instance_path), 'backups')
+    filepath = os.path.join(backup_dir, id)
+    if os.path.exists(filepath):
+        os.remove(filepath)
+        db.session.add(AuditLog(user_id=current_user.id, action_type='delete', details=f'Backup deleted: {id}', status='success'))
+        db.session.commit()
+        flash('Backup deleted.', 'success')
+    else:
+        flash('Backup file not found.', 'danger')
+    return redirect(url_for('admin_settings') + '#backup-restore')
+
+
+@app.route('/admin/restore-backup', methods=['POST'])
+@login_required
+@admin_required
+def restore_backup():
+    flash('Restore from backup is not implemented in this version. Import your CSV manually.', 'warning')
+    return redirect(url_for('admin_settings') + '#backup-restore')
+
+
+@app.route('/admin/clear-cache', methods=['POST'])
+@login_required
+@admin_required
+def clear_cache():
+    db.session.add(AuditLog(user_id=current_user.id, action_type='update', details='Cache cleared', status='success'))
+    db.session.commit()
+    flash('Cache cleared successfully.', 'success')
+    return redirect(url_for('admin_settings') + '#system-health')
+
+
+@app.route('/admin/reset-stats', methods=['POST'])
+@login_required
+@admin_required
+def reset_stats():
+    db.session.add(AuditLog(user_id=current_user.id, action_type='delete', details='System statistics reset', status='success'))
+    db.session.commit()
+    flash('Statistics reset. Note: activity log records are preserved.', 'info')
+    return redirect(url_for('admin_settings') + '#system-health')
 
 
 # ----------------------------

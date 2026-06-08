@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+{% block title %}Notifications{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-bell-fill"></i> Notifications
+        {% if unread_count > 0 %}
+            <span class="badge bg-danger ms-2">{{ unread_count }} unread</span>
+        {% endif %}
+    </h2>
+    {% if notifications %}
+    <form action="{{ url_for('mark_all_read') }}" method="POST" class="d-inline">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button type="submit" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-check2-all"></i> Mark All Read
+        </button>
+    </form>
+    {% endif %}
+</div>
+
+{% if notifications %}
+<div class="list-group shadow-sm">
+    {% for n in notifications %}
+    <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-start gap-3 py-3
+        {% if not n.is_read %}
+            {% if n.type == 'maintenance' %}border-start border-danger border-4
+            {% elif n.type == 'overdue' %}border-start border-warning border-4
+            {% elif n.type == 'session_ended' %}border-start border-info border-4
+            {% else %}border-start border-primary border-4{% endif %}
+        {% endif %}">
+
+        <div class="d-flex gap-3 align-items-start flex-grow-1">
+            <!-- Icon -->
+            <div class="mt-1">
+                {% if n.type == 'maintenance' %}
+                    <i class="bi bi-tools fs-5 text-danger"></i>
+                {% elif n.type == 'overdue' %}
+                    <i class="bi bi-alarm fs-5 text-warning"></i>
+                {% elif n.type == 'session_ended' %}
+                    <i class="bi bi-mortarboard fs-5 text-info"></i>
+                {% elif n.type == 'lending' %}
+                    <i class="bi bi-box-arrow-right fs-5 text-primary"></i>
+                {% else %}
+                    <i class="bi bi-info-circle fs-5 text-secondary"></i>
+                {% endif %}
+            </div>
+
+            <!-- Message -->
+            <div class="flex-grow-1">
+                <p class="mb-1 {% if not n.is_read %}fw-semibold{% else %}text-muted{% endif %}">
+                    {{ n.message }}
+                </p>
+                <small class="text-muted">
+                    <i class="bi bi-clock me-1"></i>{{ n.created_at.strftime('%Y-%m-%d %H:%M') }}
+                    &nbsp;·&nbsp;
+                    <span class="badge
+                        {% if n.type == 'maintenance' %}bg-danger
+                        {% elif n.type == 'overdue' %}bg-warning text-dark
+                        {% elif n.type == 'session_ended' %}bg-info text-dark
+                        {% elif n.type == 'lending' %}bg-primary
+                        {% else %}bg-secondary{% endif %}">
+                        {{ n.type | replace('_', ' ') | title }}
+                    </span>
+                    {% if not n.is_read %}
+                        <span class="badge bg-light text-dark border ms-1">Unread</span>
+                    {% endif %}
+                </small>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex gap-2 align-items-center flex-shrink-0">
+            {% if n.link %}
+                <a href="{{ n.link }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-arrow-right"></i>
+                </a>
+            {% endif %}
+            {% if not n.is_read %}
+            <form action="{{ url_for('mark_notification_read', id=n.id) }}" method="POST" class="d-inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-success" title="Mark as read">
+                    <i class="bi bi-check"></i>
+                </button>
+            </form>
+            {% endif %}
+            <form action="{{ url_for('delete_notification', id=n.id) }}" method="POST" class="d-inline"
+                  onsubmit="return confirm('Delete this notification?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="text-center text-muted py-5">
+    <i class="bi bi-bell-slash display-4 d-block mb-3"></i>
+    <p class="fs-5">No notifications yet.</p>
+    <p class="small">Notifications appear here when equipment issues are reported, loans go overdue, or teaching sessions end.</p>
+</div>
+{% endif %}
+
+{% endblock %}

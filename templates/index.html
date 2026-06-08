@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2 class="mb-4"><i class="bi bi-speedometer2"></i> System Overview Dashboard</h2>
+
+    <div class="row mb-4">
+        <div class="col-md-6 mb-3">
+            <div class="card bg-warning text-dark h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; letter-spacing: 1px; opacity: 0.8;">Active Equipment Loans</h6>
+                        <h2 class="display-5 mb-0 fw-bold">{{ active_loans }}</h2>
+                    </div>
+                    <div style="font-size: 2.5rem; opacity: 0.3;">
+                        <i class="bi bi-box-arrow-right"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <a href="{{ url_for('activity_log') }}" class="text-dark fw-semibold text-decoration-none small">View outstanding items &rarr;</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <div class="card bg-danger text-white h-100 shadow-sm border-0">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <h6 class="text-uppercase mb-1" style="font-size: 0.85rem; letter-spacing: 1px; opacity: 0.8;">Pending Repairs Required</h6>
+                        <h2 class="display-5 mb-0 fw-bold">{{ pending_repairs }}</h2>
+                    </div>
+                    <div style="font-size: 2.5rem; opacity: 0.3;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                </div>
+                <div class="card-footer bg-transparent border-0 pt-0">
+                    <a href="{{ url_for('maintenance') }}" class="text-white fw-semibold text-decoration-none small">Review maintenance tickets &rarr;</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3 mt-2">
+        <div class="col">
+            <a href="{{ url_for('students') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 border-start border-primary border-4 shadow-sm card-hover">
+                    <div class="card-body text-center py-3 px-2">
+                        <div class="text-primary display-6 mb-2"><i class="bi bi-people"></i></div>
+                        <h6 class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Students</h6>
+                        <h3 class="fw-bold mb-0">{{ student_count }}</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a href="{{ url_for('teachers') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 border-start border-success border-4 shadow-sm card-hover">
+                    <div class="card-body text-center py-3 px-2">
+                        <div class="text-success display-6 mb-2"><i class="bi bi-person-badge"></i></div>
+                        <h6 class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Teachers</h6>
+                        <h3 class="fw-bold mb-0">{{ teacher_count }}</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a href="{{ url_for('laboratories') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 border-start border-info border-4 shadow-sm card-hover">
+                    <div class="card-body text-center py-3 px-2">
+                        <div class="text-info display-6 mb-2"><i class="bi bi-building"></i></div>
+                        <h6 class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Laboratories</h6>
+                        <h3 class="fw-bold mb-0">{{ laboratory_count }}</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a href="{{ url_for('materials') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 border-start border-dark border-4 shadow-sm card-hover">
+                    <div class="card-body text-center py-3 px-2">
+                        <div class="text-dark display-6 mb-2"><i class="bi bi-cpu"></i></div>
+                        <h6 class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Total Assets</h6>
+                        <h3 class="fw-bold mb-0">{{ material_count }}</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col">
+            <a href="{{ url_for('activity_log') }}" class="text-decoration-none text-dark">
+                <div class="card h-100 border-start border-secondary border-4 shadow-sm card-hover">
+                    <div class="card-body text-center py-3 px-2">
+                        <div class="text-secondary display-6 mb-2"><i class="bi bi-clock-history"></i></div>
+                        <h6 class="text-muted text-uppercase fw-semibold mb-1" style="font-size: 0.75rem; letter-spacing: 0.5px;">Total Logs</h6>
+                        <h3 class="fw-bold mb-0">{{ activity_count }}</h3>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <div class="row mt-5 mb-4">
+        <div class="col text-center">
+            <a href="{{ url_for('activity_log') }}" class="btn btn-outline-dark px-4 py-2 shadow-sm">
+                <i class="bi bi-journal-text"></i> Open Full Activity Ledger
+            </a>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card-hover {
+        transition: all 0.2s ease-in-out;
+    }
+    .card-hover:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 .5rem 1rem rgba(0,0,0,.15)!important;
+    }
+</style>
+{% endblock %}

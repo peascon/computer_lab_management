@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="mb-3">
+                <a href="{{ url_for('students') }}" class="text-decoration-none text-muted">
+                    <i class="bi bi-arrow-left"></i> Back to Student Registry
+                </a>
+            </div>
+            
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white py-3">
+                    <h5 class="card-title mb-0"><i class="bi bi-person-plus-fill"></i> Register Student</h5>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('create_student') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <div class="mb-3">
+                            <label for="name" class="form-label fw-semibold">Full Name</label>
+                            <input type="text" class="form-control" id="name" name="name" placeholder="Enter student's full name" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="department" class="form-label fw-semibold">Department / Combination</label>
+                            <input type="text" class="form-control" id="department" name="department" placeholder="e.g., MCE, MPG, PCM, HEG" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-semibold">Email Address</label>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="student@school.rw" required>
+                        </div>
+                        <div class="d-grid gap-2 pt-2">
+                            <button type="submit" class="btn btn-primary">Save Student Record</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

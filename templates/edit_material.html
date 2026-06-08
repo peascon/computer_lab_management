@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block title %}
+Edit Material
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <nav aria-label="breadcrumb" class="mb-4">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/" class="text-decoration-none">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ url_for('materials') }}" class="text-decoration-none">Lab Materials</a></li>
+                <li class="breadcrumb-item active" aria-current="page">Edit Material</li>
+            </ol>
+        </nav>
+
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white p-3">
+                <h3 class="card-title mb-0 fs-5">
+                    <i class="bi bi-box-seam me-2"></i>Edit Lab Material
+                </h3>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label for="material_name" class="form-label fw-semibold">Material / Item Name</label>
+                        <input type="text" id="material_name" name="material_name" class="form-control" value="{{ material.material_name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="category" class="form-label fw-semibold">Item Category</label>
+                        <select id="category" name="category" class="form-select" required>
+                            {% for category in ['Equipment', 'Computer', 'Other'] %}
+                                <option value="{{ category }}" {% if material.category == category %}selected{% endif %}>{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="brand" class="form-label fw-semibold">Brand</label>
+                        <input type="text" id="brand" name="brand" class="form-control" value="{{ material.brand or '' }}">
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label for="quantity" class="form-label fw-semibold">Quantity</label>
+                            <input type="number" id="quantity" name="quantity" class="form-control" min="0" value="{{ material.quantity }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="status" class="form-label fw-semibold">Current Status</label>
+                            <select id="status" name="status" class="form-select" required>
+                                {% for status in ['Available', 'Low Stock', 'Out of Order'] %}
+                                    <option value="{{ status }}" {% if material.status == status %}selected{% endif %}>{{ status }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="laboratory_id" class="form-label fw-semibold">Assigned Laboratory</label>
+                        <select id="laboratory_id" name="laboratory_id" class="form-select" required>
+                            {% for lab in labs %}
+                                <option value="{{ lab.id }}" {% if material.laboratory_id == lab.id %}selected{% endif %}>
+                                    {{ lab.lab_name }} - {{ lab.location }} (Cap: {{ lab.capacity }})
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{{ url_for('materials') }}" class="btn btn-light border">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="bi bi-save me-1"></i> Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

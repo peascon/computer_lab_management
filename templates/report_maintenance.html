@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="mb-3">
+                <a href="{{ url_for('maintenance') }}" class="text-decoration-none text-muted">
+                    <i class="bi bi-arrow-left"></i> Back to Maintenance Logs
+                </a>
+            </div>
+
+            <div class="card shadow border-0">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="card-title mb-0"><i class="bi bi-exclamation-triangle-fill"></i> Log Lab Maintenance Ticket</h4>
+                </div>
+                <div class="card-body p-4">
+                    <form method="POST" action="{{ url_for('report_maintenance') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        
+                        <div class="mb-4">
+                            <label for="material_id" class="form-label fw-bold">Select Affected Equipment</label>
+                            <select class="form-select" id="material_id" name="material_id" required>
+                                <option value="" disabled selected>-- Choose a computer peripheral or device --</option>
+                                {% for mat in materials %}
+                                    <option value="{{ mat.id }}">
+                                        {{ mat.material_name }} ({{ mat.brand if mat.brand else 'No Brand' }}) - Located in {{ mat.laboratory.lab_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text">
+                                Select the exact item or device group that needs attention.
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="issue_description" class="form-label fw-bold">Issue Description / Fault Details</label>
+                            <textarea class="form-control" id="issue_description" name="issue_description" rows="4" placeholder="Example: PC-04 does not power on. Power indicator light is completely dark even after changing cables." required></textarea>
+                            <div class="form-text">
+                                Provide specific details regarding the problem to help diagnose or fix the issue later.
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end pt-2">
+                            <a href="{{ url_for('maintenance') }}" class="btn btn-light px-4 me-md-2">Cancel</a>
+                            <button type="submit" class="btn btn-danger px-4">
+                                <i class="bi bi-file-earmark-plus"></i> File Maintenance Ticket
+                            </button>
+                        </div>
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
