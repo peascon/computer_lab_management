@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}Help & Support{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Header -->
+    <div class="text-center mb-5">
+        <h2 class="fw-bold mb-2"><i class="bi bi-question-circle-fill text-primary"></i> Help & Support Center</h2>
+        <p class="text-muted">Find answers to common questions and get support</p>
+    </div>
+
+    <!-- Search -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8">
+            <div class="input-group input-group-lg">
+                <span class="input-group-text bg-light border-0"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control border-0 bg-light" id="searchHelp" placeholder="Search help articles...">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3 mb-4">
+            <div class="list-group">
+                <a href="#getting-started" class="list-group-item list-group-item-action active">
+                    <i class="bi bi-play-fill me-2"></i> Getting Started
+                </a>
+                <a href="#features" class="list-group-item list-group-item-action">
+                    <i class="bi bi-star-fill me-2"></i> Features Guide
+                </a>
+                <a href="#faq" class="list-group-item list-group-item-action">
+                    <i class="bi bi-chat-dots-fill me-2"></i> FAQ
+                </a>
+                <a href="#troubleshooting" class="list-group-item list-group-item-action">
+                    <i class="bi bi-tools me-2"></i> Troubleshooting
+                </a>
+                <a href="#contact" class="list-group-item list-group-item-action">
+                    <i class="bi bi-envelope-fill me-2"></i> Contact Support
+                </a>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="col-md-9">
+
+            <!-- Getting Started -->
+            <div class="mb-5" id="getting-started">
+                <h4 class="fw-bold mb-3 border-bottom pb-2">🚀 Getting Started</h4>
+                
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">1. First Steps - Login & Dashboard</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>When you first access the Lab Management System, you'll see the login page. Use your credentials to access the dashboard.</p>
+                        <ul class="list-unstyled">
+                            <li>✓ Enter your username and password</li>
+                            <li>✓ Click "Sign In"</li>
+                            <li>✓ You'll be directed to the main dashboard</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">2. Understanding the Dashboard</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>The dashboard gives you a quick overview of the entire system:</p>
+                        <ul class="list-unstyled">
+                            <li>✓ <strong>Active Loans:</strong> Number of equipment currently on loan</li>
+                            <li>✓ <strong>Pending Repairs:</strong> Equipment waiting for maintenance</li>
+                            <li>✓ Quick access cards for Students, Teachers, Labs, and Inventory</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">3. Navigation Menu</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>The top navigation bar contains links to all major sections:</p>
+                        <ul class="list-unstyled">
+                            <li>✓ <strong>Dashboard:</strong> Home screen with overview</li>
+                            <li>✓ <strong>Students:</strong> Manage student records</li>
+                            <li>✓ <strong>Teachers:</strong> Manage faculty/staff</li>
+                            <li>✓ <strong>Labs:</strong> Manage laboratory spaces</li>
+                            <li>✓ <strong>Inventory:</strong> Manage lab materials</li>
+                            <li>✓ <strong>Activity Log:</strong> View all system activities</li>
+                            <li>✓ <strong>Maintenance:</strong> Track equipment repairs</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features Guide -->
+            <div class="mb-5" id="features">
+                <h4 class="fw-bold mb-3 border-bottom pb-2">⭐ Features Guide</h4>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">Student Management</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>Keep track of all students using the lab facilities.</p>
+                        <div class="bg-light p-3 rounded mb-2">
+                            <strong>How to register a student:</strong><br>
+                            1. Click "Students" in the menu<br>
+                            2. Click "Register New Student"<br>
+                            3. Fill in name, department, and email<br>
+                            4. Click "Save Student Record"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">Equipment Loans & Returns</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>Track when equipment leaves and returns from the lab.</p>
+                        <div class="bg-light p-3 rounded mb-2">
+                            <strong>How to loan equipment:</strong><br>
+                            1. Go to "Activity Log"<br>
+                            2. Click "Log New Event / Loan"<br>
+                            3. Select person and "Lend Out Lab Material"<br>
+                            4. Choose the equipment and click "Process Entry"
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">Maintenance Tracking</h6>
+                    </div>
+                    <div class="card-body">
+                        <p>Report broken or malfunctioning equipment.</p>
+                        <div class="bg-light p-3 rounded mb-2">
+                            <strong>How to report maintenance:</strong><br>
+                            1. Click "Maintenance" in the menu<br>
+                            2. Click "Report Broken Equipment"<br>
+                            3. Select the equipment and describe the issue<br>
+                            4. Click "File Maintenance Ticket"
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="mb-5" id="faq">
+                <h4 class="fw-bold mb-3 border-bottom pb-2">❓ Frequently Asked Questions</h4>
+
+                <div class="accordion" id="faqAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                How do I reset my password?
+                            </button>
+                        </h2>
+                        <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Click "Forgot password?" on the login page, enter your username, and follow the instructions sent to your email.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                Can I delete a student record?
+                            </button>
+                        </h2>
+                        <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Yes, you can delete a student record from the Student Registry page by clicking the "Delete" button. Note: this action cannot be undone.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                How do I track overdue equipment?
+                            </button>
+                        </h2>
+                        <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Check the "Reports" page to see the "Overdue Items" section. All items not returned by their due date are listed there.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                Who can access admin settings?
+                            </button>
+                        </h2>
+                        <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Only administrators can access the Admin Settings page. If you need admin access, contact your system administrator.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                How do I backup my data?
+                            </button>
+                        </h2>
+                        <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                            <div class="accordion-body">
+                                Go to Admin Settings → Backup & Restore and click "Download Backup (CSV)" to export all system data.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Troubleshooting -->
+            <div class="mb-5" id="troubleshooting">
+                <h4 class="fw-bold mb-3 border-bottom pb-2">🔧 Troubleshooting</h4>
+
+                <div class="alert alert-info mb-3">
+                    <strong>Common Issues:</strong> Below are solutions to frequently encountered problems.
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">Login Issues</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Problem:</strong> Can't log in</p>
+                        <ul>
+                            <li>Verify your username is correct</li>
+                            <li>Check if Caps Lock is on</li>
+                            <li>Use "Forgot Password" if needed</li>
+                            <li>Contact admin if issue persists</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">Page Not Loading</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Problem:</strong> Pages won't load or are slow</p>
+                        <ul>
+                            <li>Clear your browser cache</li>
+                            <li>Try a different browser</li>
+                            <li>Check your internet connection</li>
+                            <li>Refresh the page (Ctrl+Shift+R)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mb-3">
+                    <div class="card-header bg-light">
+                        <h6 class="mb-0 fw-bold">Data Not Saving</h6>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Problem:</strong> Forms don't save</p>
+                        <ul>
+                            <li>Check for validation errors (red text)</li>
+                            <li>Verify all required fields are filled</li>
+                            <li>Try again after a few seconds</li>
+                            <li>Contact support if problem continues</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contact Support -->
+            <div id="contact">
+                <h4 class="fw-bold mb-3 border-bottom pb-2">📧 Contact Support</h4>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <div class="display-6 text-primary mb-3"><i class="bi bi-envelope"></i></div>
+                                <h6 class="fw-bold">Email Support</h6>
+                                <p class="text-muted mb-3">support@labsystem.local</p>
+                                <p class="small text-muted">Response time: Within 24 hours</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <div class="card shadow-sm border-0">
+                            <div class="card-body text-center">
+                                <div class="display-6 text-success mb-3"><i class="bi bi-telephone"></i></div>
+                                <h6 class="fw-bold">Phone Support</h6>
+                                <p class="text-muted mb-3">+250 788 123 456</p>
+                                <p class="small text-muted">Mon-Fri: 9:00 AM - 5:00 PM</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm border-0 mt-3">
+                    <div class="card-body">
+                        <h6 class="fw-bold mb-3">Send us a Message</h6>
+                        <form method="POST" action="{{ url_for('submit_support_ticket') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Subject</label>
+                                <input type="text" name="subject" class="form-control" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label">Message</label>
+                                <textarea name="message" class="form-control" rows="4" required></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-send me-2"></i> Send Message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    .list-group-item {
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+        transition: all 0.2s ease;
+    }
+    .list-group-item:hover {
+        background-color: #f8f9fa;
+        padding-left: 1.5rem;
+    }
+    .list-group-item.active {
+        background-color: #e7f1ff;
+        color: #0d6efd;
+        border-left: 3px solid #0d6efd;
+    }
+</style>
+
+<script>
+document.getElementById('searchHelp').addEventListener('keyup', function(e) {
+    const query = e.target.value.toLowerCase();
+    const cards = document.querySelectorAll('.card');
+    cards.forEach(card => {
+        const text = card.textContent.toLowerCase();
+        card.style.display = text.includes(query) ? 'block' : 'none';
+    });
+});
+</script>
+
+{% endblock %}
