@@ -1,0 +1,442 @@
+{% extends 'base.html' %}
+
+{% block title %}System Reports{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
+        <h2><i class="bi bi-bar-chart-line-fill text-primary"></i> System Activity Reports</h2>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm d-print-none">
+            <i class="bi bi-printer"></i> Print Report
+        </button>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-primary fs-2 mb-1"><i class="bi bi-calendar-check"></i></div>
+                    <h6 class="text-muted small text-uppercase">Attendance (30d)</h6>
+                    <h2 class="fw-bold text-primary">{{ monthly_attendance }}</h2>
+                    <small class="text-muted">{{ weekly_attendance }} this week</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-warning fs-2 mb-1"><i class="bi bi-box-arrow-right"></i></div>
+                    <h6 class="text-muted small text-uppercase">Loans (30d)</h6>
+                    <h2 class="fw-bold text-warning">{{ monthly_loans }}</h2>
+                    <small class="text-muted">{{ weekly_loans }} this week</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-success fs-2 mb-1"><i class="bi bi-box-arrow-in-left"></i></div>
+                    <h6 class="text-muted small text-uppercase">Returns (30d)</h6>
+                    <h2 class="fw-bold text-success">{{ monthly_returns }}</h2>
+                    <small class="text-muted">{{ weekly_returns }} this week</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card shadow-sm border-0 text-center h-100">
+                <div class="card-body">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-tools"></i></div>
+                    <h6 class="text-muted small text-uppercase">Maintenance (30d)</h6>
+                    <h2 class="fw-bold text-danger">{{ monthly_broken }}</h2>
+                    <small class="text-muted">{{ weekly_broken }} this week</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-graph-up"></i> Activity Trend — Last 7 Days</h5>
+        </div>
+        <div class="card-body">
+            <canvas id="activityChart" height="80"></canvas>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 1: Attendance Sessions -->
+    <!-- ============================================================ -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-person-check-fill"></i> Attendance Sessions</h5>
+            <span class="badge bg-secondary">{{ attendance_records | length }} records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0" id="attendanceTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Date &amp; Time</th>
+                            <th>Student / Teacher</th>
+                            <th>Class / Department</th>
+                            <th>Laboratory</th>
+                            <th>Purpose</th>
+                            <th>Subject</th>
+                            <th>Teaching Teacher</th>
+                            <th>Session Time</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in attendance_records %}
+                        <tr>
+                            <td class="text-muted small">#{{ r.id }}</td>
+                            <td class="small">{{ r.date_logged.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if r.user_type == 'student' and r.student %}
+                                    <span class="badge bg-primary me-1">Student</span>
+                                    <strong>{{ r.student.name }}</strong>
+                                {% elif r.user_type == 'teacher' and r.teacher %}
+                                    <span class="badge bg-info text-dark me-1">Teacher</span>
+                                    <strong>{{ r.teacher.name }}</strong>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.user_type == 'student' and r.student %}
+                                    <span class="badge bg-light text-dark border">{{ r.student.department }}</span>
+                                {% elif r.user_type == 'teacher' and r.teacher %}
+                                    <span class="badge bg-light text-dark border">{{ r.teacher.department }}</span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if r.laboratory %}
+                                    <i class="bi bi-building me-1 text-secondary"></i>{{ r.laboratory.lab_name }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                <span class="badge
+                                    {% if r.attendance_purpose == 'Learning with Teacher' %}bg-success
+                                    {% elif r.attendance_purpose == 'Research' %}bg-warning text-dark
+                                    {% else %}bg-secondary{% endif %}">
+                                    {{ r.attendance_purpose or '—' }}
+                                </span>
+                            </td>
+                            <td>{{ r.subject or '—' }}</td>
+                            <td>
+                                {% if r.teaching_teacher %}
+                                    {{ r.teaching_teacher.name }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="small text-muted">
+                                {% if r.start_time and r.end_time %}
+                                    {{ r.start_time.strftime('%H:%M') }} – {{ r.end_time.strftime('%H:%M') }}
+                                {% else %}—{% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">No attendance records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 2: Equipment Loans -->
+    <!-- ============================================================ -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-warning text-dark d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-box-arrow-right"></i> Equipment Loans</h5>
+            <span class="badge bg-dark">{{ lending_records | length }} records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0" id="lendingTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Date Logged</th>
+                            <th>Borrower</th>
+                            <th>Class / Department</th>
+                            <th>Computer / Equipment</th>
+                            <th>Category</th>
+                            <th>Laboratory</th>
+                            <th>Lent On</th>
+                            <th>Due Back</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in lending_records %}
+                        <tr class="{% if r.return_status == 'borrowed' and r.return_date and r.return_date < now %}table-danger{% endif %}">
+                            <td class="text-muted small">#{{ r.id }}</td>
+                            <td class="small">{{ r.date_logged.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                {% if r.user_type == 'student' and r.student %}
+                                    <span class="badge bg-primary me-1">Student</span>
+                                    <strong>{{ r.student.name }}</strong>
+                                {% elif r.user_type == 'teacher' and r.teacher %}
+                                    <span class="badge bg-info text-dark me-1">Teacher</span>
+                                    <strong>{{ r.teacher.name }}</strong>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if r.user_type == 'student' and r.student %}
+                                    <span class="badge bg-light text-dark border">{{ r.student.department }}</span>
+                                {% elif r.user_type == 'teacher' and r.teacher %}
+                                    <span class="badge bg-light text-dark border">{{ r.teacher.department }}</span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if r.material %}
+                                    <i class="bi bi-pc-display me-1 text-secondary"></i>
+                                    <strong>{{ r.material.material_name }}</strong>
+                                    {% if r.material.brand %}
+                                        <br><small class="text-muted">{{ r.material.brand }}</small>
+                                    {% endif %}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if r.material %}
+                                    <span class="badge bg-secondary">{{ r.material.category }}</span>
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if r.material and r.material.laboratory %}
+                                    {{ r.material.laboratory.lab_name }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="small">
+                                {{ r.lending_date.strftime('%Y-%m-%d') if r.lending_date else '—' }}
+                            </td>
+                            <td class="small {% if r.return_status == 'borrowed' and r.return_date and r.return_date < now %}text-danger fw-bold{% endif %}">
+                                {{ r.return_date.strftime('%Y-%m-%d') if r.return_date else '—' }}
+                            </td>
+                            <td>
+                                {% if r.return_status == 'returned' %}
+                                    <span class="badge bg-success">Returned</span>
+                                {% elif r.return_status == 'borrowed' and r.return_date and r.return_date < now %}
+                                    <span class="badge bg-danger">Overdue</span>
+                                {% elif r.return_status == 'borrowed' %}
+                                    <span class="badge bg-warning text-dark">Borrowed</span>
+                                {% else %}
+                                    <span class="text-muted">—</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="10" class="text-center text-muted py-4">No lending records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- SECTION 3: Overdue Items -->
+    <!-- ============================================================ -->
+    {% if overdue_loans %}
+    <div class="card shadow-sm border-0 border-start border-danger border-4 mb-4">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-alarm-fill"></i> Overdue Items — Action Required</h5>
+            <span class="badge bg-white text-danger">{{ overdue_loans | length }} overdue</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Borrower</th>
+                            <th>Class / Department</th>
+                            <th>Computer / Equipment</th>
+                            <th>Laboratory</th>
+                            <th>Borrowed On</th>
+                            <th>Was Due</th>
+                            <th>Days Overdue</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in overdue_loans %}
+                        <tr class="table-danger">
+                            <td>
+                                {% if r.user_type == 'student' and r.student %}
+                                    <span class="badge bg-primary me-1">Student</span><strong>{{ r.student.name }}</strong>
+                                {% elif r.teacher %}
+                                    <span class="badge bg-info text-dark me-1">Teacher</span><strong>{{ r.teacher.name }}</strong>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if r.user_type == 'student' and r.student %}{{ r.student.department }}
+                                {% elif r.teacher %}{{ r.teacher.department }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>
+                                {% if r.material %}
+                                    <strong>{{ r.material.material_name }}</strong>
+                                    {% if r.material.brand %}<br><small class="text-muted">{{ r.material.brand }}</small>{% endif %}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td>{{ r.material.laboratory.lab_name if r.material and r.material.laboratory else '—' }}</td>
+                            <td>{{ r.lending_date.strftime('%Y-%m-%d') if r.lending_date else '—' }}</td>
+                            <td class="text-danger fw-bold">{{ r.return_date.strftime('%Y-%m-%d') if r.return_date else '—' }}</td>
+                            <td>
+                                {% if r.return_date %}
+                                    {% set days = ((now - r.return_date).days) %}
+                                    <span class="badge bg-danger fs-6">{{ days }} day{{ 's' if days != 1 }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ============================================================ -->
+    <!-- SECTION 4: Maintenance / Equipment Issues -->
+    <!-- ============================================================ -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-danger text-white d-flex justify-content-between align-items-center">
+            <h5 class="mb-0"><i class="bi bi-tools"></i> Equipment Issues &amp; Maintenance</h5>
+            <span class="badge bg-white text-danger">{{ maintenance_records | length }} records</span>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-striped align-middle mb-0" id="maintenanceTable">
+                    <thead class="table-light">
+                        <tr>
+                            <th>#</th>
+                            <th>Date Reported</th>
+                            <th>Computer / Equipment</th>
+                            <th>Brand</th>
+                            <th>Category</th>
+                            <th>Laboratory</th>
+                            <th>Issue Description</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in maintenance_records %}
+                        <tr>
+                            <td class="text-muted small">#{{ r.id }}</td>
+                            <td class="small">{{ r.date_reported.strftime('%Y-%m-%d %H:%M') }}</td>
+                            <td>
+                                <i class="bi bi-pc-display me-1 text-secondary"></i>
+                                <strong>{{ r.material.material_name }}</strong>
+                            </td>
+                            <td>{{ r.material.brand or '—' }}</td>
+                            <td><span class="badge bg-secondary">{{ r.material.category }}</span></td>
+                            <td>
+                                {% if r.material.laboratory %}
+                                    <i class="bi bi-building me-1"></i>{{ r.material.laboratory.lab_name }}
+                                {% else %}—{% endif %}
+                            </td>
+                            <td class="text-muted small">{{ r.issue_description }}</td>
+                            <td>
+                                {% if r.status == 'Pending' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% else %}
+                                    <span class="badge bg-success">Resolved</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="8" class="text-center text-muted py-4">No maintenance records found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Purpose Breakdown -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-info text-white">
+            <h5 class="mb-0"><i class="bi bi-pie-chart-fill"></i> Attendance Purpose Breakdown</h5>
+        </div>
+        <div class="card-body">
+            {% if purpose_distribution %}
+            <div class="table-responsive">
+                <table class="table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Purpose</th>
+                            <th>Total Sessions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for purpose, count in purpose_distribution %}
+                        <tr>
+                            <td>{{ purpose }}</td>
+                            <td><span class="badge bg-primary fs-6">{{ count }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center text-muted py-3">No attendance records available.</div>
+            {% endif %}
+        </div>
+    </div>
+
+</div><!-- /container-fluid -->
+{% endblock %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('activityChart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ monthly_chart_labels | tojson }},
+        datasets: [
+            {
+                label: 'Attendance',
+                data: {{ monthly_chart_attendance | tojson }},
+                backgroundColor: 'rgba(13, 110, 253, 0.6)',
+                borderColor: 'rgba(13, 110, 253, 1)',
+                borderWidth: 1
+            },
+            {
+                label: 'Loans',
+                data: {{ monthly_chart_loans | tojson }},
+                backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                borderColor: 'rgba(255, 193, 7, 1)',
+                borderWidth: 1
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+    }
+});
+
+// Search/filter for each table
+function filterTable(inputId, tableId) {
+    const input = document.getElementById(inputId);
+    input.addEventListener('keyup', function() {
+        const filter = this.value.toLowerCase();
+        document.querySelectorAll('#' + tableId + ' tbody tr').forEach(row => {
+            row.style.display = row.textContent.toLowerCase().includes(filter) ? '' : 'none';
+        });
+    });
+}
+</script>

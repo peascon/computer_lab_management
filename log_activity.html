@@ -1,0 +1,122 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white">
+                <h5 class="mb-0">New Lab Session / Material Loan Record</h5>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Select Person (Teacher or Student)</label>
+                        <select name="user_target" class="form-select" required>
+                            <option value="" disabled selected>Choose individual...</option>
+                            <optgroup label="Teachers">
+                                {% for t in teachers %}
+                                    <option value="teacher-{{ t.id }}">Teacher: {{ t.name }} ({{ t.department }})</option>
+                                {% endfor %}
+                            </optgroup>
+                            <optgroup label="Students">
+                                {% for s in students %}
+                                    <option value="student-{{ s.id }}">Student: {{ s.name }}</option>
+                                {% endfor %}
+                            </optgroup>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Action Type</label>
+                        <select id="actType" name="activity_type" class="form-select" onchange="toggleActionFields()" required>
+                            <option value="" disabled selected>Select operation type...</option>
+                            <option value="attendance">Attend Lab Session</option>
+                            <option value="lending">Lend Out Lab Material / Device</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-4 d-none" id="labField">
+                        <label class="form-label fw-bold">Target Laboratory</label>
+                        <select name="laboratory_id" class="form-select">
+                            {% for lab in labs %}
+                                <option value="{{ lab.id }}">{{ lab.lab_name }} - {{ lab.location }}</option>
+                            {% endfor %}
+                        </select>
+
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">Start Time</label>
+                                <input type="time" name="start_time" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">End Time</label>
+                                <input type="time" name="end_time" class="form-control">
+                            </div>
+                        </div>
+
+                        <label class="form-label fw-bold mt-3">Purpose of Attendance</label>
+                        <select id="attendancePurpose" name="attendance_purpose" class="form-select" onchange="toggleTeachingFields()">
+                            <option value="Research">Independent Research</option>
+                            <option value="Learning with Teacher">Learning Session with Teacher</option>
+                        </select>
+
+                        <div class="mt-3 d-none" id="teachingFields">
+                            <label class="form-label fw-bold">Subject</label>
+                            <input type="text" name="subject" class="form-control" placeholder="Example: Database Systems">
+
+                            <label class="form-label fw-bold mt-3">Teacher Teaching the Subject</label>
+                            <select name="teaching_teacher_id" class="form-select">
+                                <option value="" disabled selected>Choose teacher...</option>
+                                {% for t in teachers %}
+                                    <option value="{{ t.id }}">{{ t.name }} ({{ t.department }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 d-none" id="materialField">
+                        <label class="form-label fw-bold">Available Material Item</label>
+                        <select name="material_id" class="form-select">
+                            {% for mat in materials %}
+                                <option value="{{ mat.id }}">{{ mat.material_name }} [{{ mat.brand or 'Generic' }}] - Stock: {{ mat.quantity }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">Process Entry</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleActionFields() {
+    const type = document.getElementById('actType').value;
+    const labField = document.getElementById('labField');
+    const materialField = document.getElementById('materialField');
+
+    if (type === 'attendance') {
+        labField.classList.remove('d-none');
+        materialField.classList.add('d-none');
+        toggleTeachingFields();
+    } else if (type === 'lending') {
+        materialField.classList.remove('d-none');
+        labField.classList.add('d-none');
+    }
+}
+
+function toggleTeachingFields() {
+    const purpose = document.getElementById('attendancePurpose').value;
+    const teachingFields = document.getElementById('teachingFields');
+
+    if (purpose === 'Learning with Teacher') {
+        teachingFields.classList.remove('d-none');
+    } else {
+        teachingFields.classList.add('d-none');
+    }
+}
+</script>
+{% endblock %}
